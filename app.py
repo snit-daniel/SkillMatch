@@ -14,6 +14,7 @@ from passlib.context import CryptContext
 import re
 import os
 from dotenv import load_dotenv
+import certifi
 
 # Load environment variables
 load_dotenv()
@@ -50,19 +51,25 @@ ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 30))
 
 # Database Configuration
-MONGODB_URI = os.getenv("MONGODB_URI", "mongodb://localhost:27017/")
+MONGODB_URI = os.getenv("MONGODB_URI", "mongodb+srv://snitdan17:thankLord%40123@cluster0.uhl3bge.mongodb.net/skillmatch_db?retryWrites=true&w=majority")
 
 try:
     client = MongoClient(
         MONGODB_URI,
-        connectTimeoutMS=5000,
-        serverSelectionTimeoutMS=5000
+        tls=True,  # Required for Atlas
+        tlsCAFile=certifi.where(),  # Uses certifi's CA bundle
+        connectTimeoutMS=10000,  # Increased timeout
+        socketTimeoutMS=30000,
+        serverSelectionTimeoutMS=10000
     )
-    # Force connection to verify it works
-    client.server_info()
-    db = client.skillmatch_db
-except pymongo.errors.ServerSelectionTimeoutError as err:
+    
+    # Test connection with a simple command
+    db = client["skillmatch_db"]  # Explicit database selection
+    print("Connection successful! Collections:", db.list_collection_names())
+    
+except Exception as err:
     raise RuntimeError(f"MongoDB connection failed: {err}")
+
 
 # Collections
 users = db.users
