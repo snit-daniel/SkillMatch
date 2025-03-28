@@ -51,22 +51,21 @@ ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 30))
 
 # Database Configuration
-MONGODB_URI = os.getenv("MONGODB_URI", "mongodb+srv://snitdan17:thankLord%40123@cluster0.uhl3bge.mongodb.net/skillmatch_db?retryWrites=true&w=majority")
+MONGODB_URI = os.getenv("MONGODB_URI")
+if not MONGODB_URI:
+    raise ValueError("MONGODB_URI must be set in environment variables")
 
 try:
     client = MongoClient(
         MONGODB_URI,
-        tls=True,  # Required for Atlas
-        tlsCAFile=certifi.where(),  # Uses certifi's CA bundle
-        connectTimeoutMS=10000,  # Increased timeout
+        tls=True,
+        tlsCAFile=certifi.where(),
+        connectTimeoutMS=10000,
         socketTimeoutMS=30000,
         serverSelectionTimeoutMS=10000
     )
-    
-    # Test connection with a simple command
-    db = client["skillmatch_db"]  # Explicit database selection
-    print("Connection successful! Collections:", db.list_collection_names())
-    
+    db = client.get_database()  # Gets database from connection string
+    print("Connection successful!")  # Simple confirmation
 except Exception as err:
     raise RuntimeError(f"MongoDB connection failed: {err}")
 
