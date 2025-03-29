@@ -1,3 +1,7 @@
+import os
+from dotenv import load_dotenv
+# Load environment variables
+load_dotenv()
 from fastapi import FastAPI, HTTPException, Depends, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi.middleware.cors import CORSMiddleware
@@ -13,11 +17,8 @@ from jose import JWTError, jwt
 from passlib.context import CryptContext
 import re
 import os
-from dotenv import load_dotenv
 import certifi
 
-# Load environment variables
-load_dotenv()
 
 app = FastAPI(
     title="SkillMatch API",
@@ -61,11 +62,10 @@ try:
         tls=True,
         tlsCAFile=certifi.where(),
         connectTimeoutMS=10000,
-        socketTimeoutMS=30000,
-        serverSelectionTimeoutMS=10000
+        socketTimeoutMS=30000
     )
     db = client.get_database()  # Gets database from connection string
-    print("Connection successful!")  # Simple confirmation
+    print("Connection successful to:", MONGODB_URI)  # Verify which URI is used
 except Exception as err:
     raise RuntimeError(f"MongoDB connection failed: {err}")
 
@@ -205,9 +205,17 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
 
 # Initialize with sample data
 def init_data():
+    # Only initialize in development
+    if os.getenv("ENVIRONMENT") == "production":
+        print("Skipping data initialization in production")
+        return
+        
+    # Clear existing data
+    print("Initializing sample data...")
     users.delete_many({})
     jobs.delete_many({})
     courses.delete_many({})
+
     
     # Sample users
     users.insert_many([
