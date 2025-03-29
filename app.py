@@ -18,6 +18,8 @@ from passlib.context import CryptContext
 import re
 import os
 import certifi
+from fastapi.responses import JSONResponse
+
 
 
 app = FastAPI(
@@ -459,7 +461,48 @@ def init_data():
 if os.getenv("ENVIRONMENT") != "production":
     init_data()
 
+    
 # API Endpoints
+@app.get(
+    "/",
+    include_in_schema=True,
+    summary="API Status",
+    description="Provides API health status and metadata",
+    tags=["Service Status"]
+)
+async def root() -> JSONResponse:
+    """Root endpoint for health checks and API discovery"""
+    # Base response structure
+    response_data = {
+        "service": "SkillMatch API",
+        "version": "1.0",
+        "status": {
+            "api": "operational",
+            "database": "available" if db.command('ping').get('ok') == 1 else "unavailable"
+        },
+        "docs": "/docs",
+        "contact": "support@skillmatch.com"
+    }
+
+    # Add debug information in non-production environments
+    if os.getenv("ENVIRONMENT", "development") != "production":
+        response_data.update({
+            "environment": os.getenv("ENVIRONMENT"),
+            "endpoints": {
+                "auth": ["/auth/signup", "/auth/login"],
+                "user": ["/users/me"],
+                "jobs": ["/jobs", "/jobs/recommendations"],
+                "courses": ["/courses"]
+            }
+        })
+
+    return JSONResponse(
+        content=response_data,
+        headers={
+            "X-API-Version": "1.0",
+            "Cache-Control": "no-cache" if os.getenv("ENVIRONMENT") != "production" else "no-store"
+        }
+    )
 @app.post("/auth/signup", response_model=dict)
 async def signup(user: UserSignup):
     if users.find_one({"email": user.email}):
