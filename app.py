@@ -43,9 +43,9 @@ app = FastAPI(
 
 
 # Get the absolute path to the SkillMatch directory
-skillmatch_dir = os.path.join(os.path.expanduser("~"), "Downloads", "SkillMatch")
-static_dir = os.path.join(skillmatch_dir, "static")
-templates_dir = os.path.join(skillmatch_dir, "templates")
+current_dir = os.path.dirname(os.path.abspath(__file__))
+static_dir = os.path.join(current_dir, "static")
+templates_dir = os.path.join(current_dir, "templates")
 
 print(f"Static directory: {static_dir}")
 print(f"Templates directory: {templates_dir}")
