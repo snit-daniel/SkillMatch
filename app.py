@@ -1,12 +1,20 @@
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+from fastapi.requests import Request
+
+
+from fastapi import FastAPI, Request, Form, Depends, HTTPException, status
+from fastapi.responses import RedirectResponse, HTMLResponse
+from pydantic import BaseModel, EmailStr, field_validator
+
+
 import os
 from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
-from fastapi import FastAPI, HTTPException, Depends, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi.middleware.cors import CORSMiddleware
 from pymongo import MongoClient
-from pydantic import BaseModel, EmailStr, validator
 from typing import List, Optional
 from datetime import datetime, timedelta
 from uuid import UUID, uuid4
@@ -22,6 +30,8 @@ from fastapi.responses import JSONResponse
 
 
 
+
+
 app = FastAPI(
     title="SkillMatch API",
     version="1.0",
@@ -29,6 +39,24 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url=None  # Disable redoc for production
 )
+
+
+
+# Get the absolute path to the SkillMatch directory
+skillmatch_dir = os.path.join(os.path.expanduser("~"), "Downloads", "SkillMatch")
+static_dir = os.path.join(skillmatch_dir, "static")
+templates_dir = os.path.join(skillmatch_dir, "templates")
+
+print(f"Static directory: {static_dir}")
+print(f"Templates directory: {templates_dir}")
+
+# Configure static files
+app.mount("/static", StaticFiles(directory=static_dir), name="static")
+
+# Configure templates
+templates = Jinja2Templates(directory=templates_dir)
+
+
 
 # Configure CORS based on environment
 allowed_origins = [
@@ -40,7 +68,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["*"],  # This should allow POST
     allow_headers=["*"],
     expose_headers=["X-Request-ID"]
 )
@@ -129,9 +157,11 @@ class UserSignup(BaseModel):
     email: EmailStr
     password: str
 
-    @validator('password')
+    @field_validator('password')  # Changed from @validator
     def validate_password(cls, v):
         return validate_password(v)
+
+    
 
 class UserLogin(BaseModel):
     email: EmailStr
@@ -461,15 +491,28 @@ def init_data():
 if os.getenv("ENVIRONMENT") != "production":
     init_data()
 
-    
-# API Endpoints
-@app.get(
-    "/",
-    include_in_schema=True,
-    summary="API Status",
-    description="Provides API health status and metadata",
-    tags=["Service Status"]
-)
+
+@app.get("/")
+async def home(request: Request):
+    return templates.TemplateResponse("home.html", {"request": request})
+
+
+# # API Endpoints
+# @app.get(
+#     "/",
+#     include_in_schema=True,
+#     summary="API Status",
+#     description="Provides API health status and metadata",
+#     tags=["Service Status"]
+# )
+
+@app.get("/debug-paths")
+async def debug_paths():
+    return {
+        "working_directory": os.getcwd(),
+        "static_files_exist": os.path.exists("static/css/style.css"),
+        "templates_exist": os.path.exists("templates/base.html")
+    }
 async def root() -> JSONResponse:
     """Root endpoint for health checks and API discovery"""
     # Base response structure
@@ -489,12 +532,14 @@ async def root() -> JSONResponse:
         response_data.update({
             "environment": os.getenv("ENVIRONMENT"),
             "endpoints": {
-                "auth": ["/auth/signup", "/auth/login"],
+                "auth": ["/signup", "/auth/login"],
                 "user": ["/users/me"],
                 "jobs": ["/jobs", "/jobs/recommendations"],
                 "courses": ["/courses"]
             }
         })
+
+
 
     return JSONResponse(
         content=response_data,
@@ -503,39 +548,102 @@ async def root() -> JSONResponse:
             "Cache-Control": "no-cache" if os.getenv("ENVIRONMENT") != "production" else "no-store"
         }
     )
-@app.post("/auth/signup", response_model=dict)
-async def signup(user: UserSignup):
-    if users.find_one({"email": user.email}):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Email already registered"
-        )
-    
-    user_id = uuid4()
-    users.insert_one({
-        "_id": uuid_to_bin(user_id),
-        "email": user.email,
-        "hashed_password": pwd_context.hash(user.password),
-        "full_name": "",
-        "cv_url": "",
-        "additional_skills": []
-    })
-    
-    return {"message": "Registration successful. Please log in."}
 
-@app.post("/auth/login", response_model=Token)
-async def login(form_data: OAuth2PasswordRequestForm = Depends()):
-    user = users.find_one({"email": form_data.username})
-    if not user or not pwd_context.verify(form_data.password, user["hashed_password"]):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password",
-            headers={"WWW-Authenticate": "Bearer"},
+
+
+
+
+
+from fastapi.responses import RedirectResponse
+from fastapi import status
+
+@app.get("/signup", response_class=HTMLResponse)
+async def show_signup_page(request: Request):
+    return templates.TemplateResponse("sign_in.html", {"request": request})
+
+
+
+@app.post("/signup", response_class=HTMLResponse)
+async def handle_signup(
+    request: Request,
+    email: str = Form(...),
+    password: str = Form(...)
+):
+    try:
+        user = UserSignup(email=email, password=password)
+        
+        if users.find_one({"email": user.email}):
+            return templates.TemplateResponse(
+                "sign_in.html",
+                {
+                    "request": request,
+                    "error": {
+                        "message": "Please fix these password requirements:",
+                        "type": "password",
+                        "style": "error"
+                    }
+                },
+                status_code=400
+            )
+                
+        user_id = uuid4()
+        users.insert_one({
+            "_id": uuid_to_bin(user_id),
+            "email": user.email,
+            "hashed_password": pwd_context.hash(user.password),
+            "full_name": "",
+            "cv_url": "",
+            "additional_skills": []
+        })
+        
+        # Change this to redirect to login instead of profile
+        return RedirectResponse(url="/login", status_code=303)
+    
+    except ValueError as e:
+        return templates.TemplateResponse(
+            "sign_in.html",
+            {"request": request, "error": str(e)},
+            status_code=400
+        )
+
+@app.get("/login", response_class=HTMLResponse)
+async def login_page(request: Request):
+    return templates.TemplateResponse("log_in.html", {"request": request})
+
+
+
+@app.post("/auth/login", response_class=HTMLResponse)
+async def handle_login(
+    request: Request,
+    username: str = Form(...),
+    password: str = Form(...)
+):
+    user = users.find_one({"email": username})
+    if not user or not pwd_context.verify(password, user["hashed_password"]):
+        return templates.TemplateResponse(
+            "log_in.html",
+            {
+                "request": request,
+                "error": {
+                    "message": "The email or password you entered is incorrect",
+                    "type": "auth",
+                    "style": "error"
+                }
+            },
+            status_code=401
         )
     
     access_token = create_access_token({"sub": str(bin_to_uuid(user["_id"]))})
-    return {"access_token": access_token, "token_type": "bearer"}
-
+    
+    # Change this to redirect to profile instead of dashboard
+    response = RedirectResponse(url="/profile", status_code=303)
+    response.set_cookie(
+        key="access_token",
+        value=f"Bearer {access_token}",
+        httponly=True,
+        max_age=3600
+    )
+    return response
 
 # User profile endpoints
 @app.get("/users/me", response_model=UserResponse)
@@ -638,6 +746,35 @@ async def get_all_courses():
         for course in courses.find()
     ]
 
+
+
+# Add these new endpoints to serve your frontend pages
+
+
+
+@app.get("/profile", response_class=HTMLResponse)
+async def profile(request: Request):
+    return templates.TemplateResponse("profile_building.html", {"request": request})
+
+@app.get("/job_search", response_class=HTMLResponse)
+async def job_search(request: Request):
+    return templates.TemplateResponse("job_search.html", {"request": request})
+
+@app.get("/interview_prep", response_class=HTMLResponse)
+async def interview_prep(request: Request):
+    return templates.TemplateResponse("interview_prep.html", {"request": request})
+
+
+@app.get("/routes")
+async def list_routes():
+    routes = []
+    for route in app.routes:
+        routes.append({
+            "path": route.path,
+            "name": route.name,
+            "methods": list(route.methods)
+        })
+    return routes
 
 if __name__ == "__main__":
     import uvicorn

@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %}Job Search | SkillMatch{% endblock %}
+
+{% block content %}
+    <h1>Job Search</h1>
+    
+    <div class="search-filters">
+        <input type="text" id="jobSearch" placeholder="Search for jobs...">
+        <select id="experienceFilter">
+            <option value="">All Experience Levels</option>
+            <option value="Entry Level">Entry Level</option>
+            <option value="Mid Level">Mid Level</option>
+            <option value="Senior Level">Senior Level</option>
+        </select>
+        <button id="searchBtn" class="btn-primary">Search</button>
+    </div>
+    
+    <div id="jobResults" class="job-listings">
+        <!-- Jobs will be loaded here via JavaScript -->
+    </div>
+    
+    <script src="{{ url_for('static', filename='js/job_search.js') }}"></script>
+{% endblock %}

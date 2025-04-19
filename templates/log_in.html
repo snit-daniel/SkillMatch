@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}Login | SkillMatch{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <div class="form-card">
+        <div class="form-header">
+            <h1 class="form-title">Welcome Back</h1>
+            <p class="form-subtitle">Login to access your SkillMatch account</p>
+        </div>
+        
+        {% if error %}
+        <div class="alert alert-error">
+            <div class="alert-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+            </div>
+            <div class="alert-content">
+                <h4>Login Failed</h4>
+                <p>We couldn't log you in. Please check:</p>
+                <ul class="error-details">
+                    <li>Your email address is correct</li>
+                    <li>Your password is entered properly</li>
+                    <li>You've verified your email if this is a new account</li>
+                </ul>
+                <a href="/forgot-password" class="alert-link">Forgot your password?</a>
+            </div>
+        </div>
+        {% endif %}
+        <form id="loginForm" method="post" action="/auth/login" class="auth-form">
+            <div class="form-group">
+                <label for="email" class="input-label">Email Address</label>
+                <div class="input-wrapper">
+                    <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                        <polyline points="22,6 12,13 2,6"></polyline>
+                    </svg>
+                    <input type="email" id="email" name="username" class="form-input" placeholder="Enter your email" required>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="password" class="input-label">Password</label>
+                <div class="input-wrapper">
+                    <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                    </svg>
+                    <input type="password" id="password" name="password" class="form-input" placeholder="Enter your password" required>
+                </div>
+                <a href="#" class="forgot-password">Forgot password?</a>
+            </div>
+            
+            <button type="submit" class="submit-btn">
+                <span>Login</span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M5 12h14M12 5l7 7-7 7"></path>
+                </svg>
+            </button>
+            <div class="form-footer">
+                <p>Don't have an account? <a href="/signup" class="auth-link">Sign up</a></p>
+                
+            </div>
+            
+        </form>
+    </div>
+</div>
+{% endblock %}

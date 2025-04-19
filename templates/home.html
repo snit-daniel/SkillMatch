@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}Home | SkillMatch{% endblock %}
+
+{% block content %}
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1>Welcome to SkillMatch</h1>
+                <p class="subtitle">Your one-stop solution for job hunting and professional development.</p>
+                <div class="cta-buttons">
+                    <a href="/signup" class="btn-primary">Get Started</a>
+                    <a href="/job-search" class="btn-secondary">Browse Jobs</a>
+                </div>
+            </div>
+            <div class="hero-image">
+                <img src="/static/images/1.jpeg" alt="Career growth illustration">
+            </div>
+        </div>
+    </section>
+
+    <section class="features">
+        <div class="container">
+            <h2 class="section-title">How SkillMatch Helps You</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-user-tie"></i>
+                    </div>
+                    <h3>Profile Building</h3>
+                    <p>Create a professional profile that highlights your skills and experience to attract employers.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-briefcase"></i>
+                    </div>
+                    <h3>Job Matching</h3>
+                    <p>Find jobs that perfectly match your skills and career aspirations with our smart matching system.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-comments"></i>
+                    </div>
+                    <h3>Interview Preparation</h3>
+                    <p>Get ready for interviews with tailored resources, mock interviews, and practice questions.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="testimonials">
+        <div class="container">
+            <h2 class="section-title">Success Stories</h2>
+            <div class="testimonial-cards">
+                <div class="testimonial-card">
+                    <div class="testimonial-content">
+                        <p>"SkillMatch helped me find my dream job in just 2 weeks! The interview prep resources were invaluable."</p>
+                    </div>
+                    <div class="testimonial-author">
+                        <img src="/static/images/2.jpeg" alt="Sarah Johnson">
+                        <div>
+                            <h4>Sarah Johnson</h4>
+                            <p>Software Developer at TechCorp</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-card">
+                    <div class="testimonial-content">
+                        <p>"The profile builder helped me showcase my skills in the best way possible. Got 5 interview calls in one week!"</p>
+                    </div>
+                    <div class="testimonial-author">
+                        <img src="/static/images/3.jpeg" alt="Michael Chen">
+                        <div>
+                            <h4>Michael Chen</h4>
+                            <p>Data Analyst at DataWorks</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}

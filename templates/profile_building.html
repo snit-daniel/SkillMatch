@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+
+{% block title %}Profile | SkillMatch{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+    <div class="profile-card">
+        <div class="profile-header">
+            <h1 class="profile-title">Build Your Profile</h1>
+            <p class="profile-subtitle">Complete your profile to get better job matches</p>
+        </div>
+        
+        <form id="profileForm" method="post" action="/users/me/profile" class="profile-form">
+            <div class="form-group">
+                <label for="full_name" class="input-label">Full Name</label>
+                <div class="input-wrapper">
+                    <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    <input type="text" id="full_name" name="full_name" class="form-input" placeholder="Enter your full name" required>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="cv_url" class="input-label">CV/Resume URL</label>
+                <div class="input-wrapper">
+                    <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                        <polyline points="10 9 9 9 8 9"></polyline>
+                    </svg>
+                    <input type="url" id="cv_url" name="cv_url" class="form-input" placeholder="https://example.com/your-cv.pdf" required>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="skills" class="input-label">Your Skills</label>
+                <div class="skills-input-container">
+                    <div class="skills-hint">Add your top skills (press Enter or comma after each skill)</div>
+                    <div class="skills-tags-container" id="skillsTagsContainer"></div>
+                    <input type="text" id="skillsInput" class="form-input" placeholder="e.g. Python, JavaScript, Project Management">
+                    <input type="hidden" id="skills" name="additional_skills">
+                </div>
+                <small class="form-hint">These skills will be used to match you with relevant jobs</small>
+            </div>
+            
+            <button type="submit" class="submit-btn">
+                <span>Save Profile</span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                    <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                    <polyline points="7 3 7 8 15 8"></polyline>
+                </svg>
+            </button>
+        </form>
+    </div>
+</div>
+
+<style>
+/* Profile Specific Styles */
+.profile-container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 80vh;
+    padding: 2rem;
+    background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+}
+
+.profile-card {
+    width: 100%;
+    max-width: 600px;
+    padding: 2.5rem;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+}
+
+.profile-header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+}
+
+.profile-title {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+}
+
+.profile-subtitle {
+    color: #7f8c8d;
+    font-size: 0.95rem;
+}
+
+.profile-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.75rem;
+}
+
+/* Skills Input Styles */
+.skills-input-container {
+    position: relative;
+}
+
+.skills-hint {
+    font-size: 0.85rem;
+    color: #7f8c8d;
+    margin-bottom: 0.5rem;
+}
+
+.skills-tags-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    min-height: 2.5rem;
+}
+
+.skill-tag {
+    display: inline-flex;
+    align-items: center;
+    background-color: #e0f2fe;
+    color: #0369a1;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.skill-tag-remove {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 0.5rem;
+    cursor: pointer;
+    color: #0369a1;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    transition: background-color 0.2s;
+}
+
+.skill-tag-remove:hover {
+    background-color: #bae6fd;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const skillsInput = document.getElementById('skillsInput');
+    const skillsTagsContainer = document.getElementById('skillsTagsContainer');
+    const skillsHiddenInput = document.getElementById('skills');
+    let skills = [];
+
+    // Load existing skills if any
+    if (skillsHiddenInput.value) {
+        skills = skillsHiddenInput.value.split(',');
+        renderSkills();
+    }
+
+    skillsInput.addEventListener('keydown', function(e) {
+        if (['Enter', ','].includes(e.key) && skillsInput.value.trim()) {
+            e.preventDefault();
+            addSkill(skillsInput.value.trim());
+            skillsInput.value = '';
+        }
+    });
+
+    skillsInput.addEventListener('blur', function() {
+        if (skillsInput.value.trim()) {
+            addSkill(skillsInput.value.trim());
+            skillsInput.value = '';
+        }
+    });
+
+    function addSkill(skill) {
+        if (skill && !skills.includes(skill)) {
+            skills.push(skill);
+            renderSkills();
+        }
+    }
+
+    function removeSkill(skill) {
+        skills = skills.filter(s => s !== skill);
+        renderSkills();
+    }
+
+    function renderSkills() {
+        skillsTagsContainer.innerHTML = '';
+        skills.forEach(skill => {
+            const tag = document.createElement('div');
+            tag.className = 'skill-tag';
+            tag.innerHTML = `
+                ${skill}
+                <span class="skill-tag-remove" onclick="removeSkill('${skill}')">×</span>
+            `;
+            skillsTagsContainer.appendChild(tag);
+        });
+        skillsHiddenInput.value = skills.join(',');
+    }
+
+    // Make removeSkill available globally for the onclick handler
+    window.removeSkill = removeSkill;
+});
+</script>
+{% endblock %}

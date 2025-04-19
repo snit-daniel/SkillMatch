@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}Interview Prep | SkillMatch{% endblock %}
+
+{% block content %}
+    <h1>Interview Preparation</h1>
+    
+    <div class="resources">
+        <div class="resource-card">
+            <h3>Common Questions</h3>
+            <ul id="commonQuestions"></ul>
+        </div>
+        
+        <div class="resource-card">
+            <h3>Technical Challenges</h3>
+            <div id="techChallenges"></div>
+        </div>
+        
+        <div class="resource-card">
+            <h3>Behavioral Tips</h3>
+            <div id="behavioralTips"></div>
+        </div>
+    </div>
+    
+    <script src="{{ url_for('static', filename='js/interview_prep.js') }}"></script>
+{% endblock %}
