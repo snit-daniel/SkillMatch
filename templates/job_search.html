@@ -1,24 +1,970 @@
 {% extends "base.html" %}
 
-{% block title %}Job Search | SkillMatch{% endblock %}
+{% block title %}Job Search - SkillMatch{% endblock %}
+
 
 {% block content %}
-    <h1>Job Search</h1>
+
+<style>
+    /* Job Search Page Styles */
+    .job-search-container {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
     
-    <div class="search-filters">
-        <input type="text" id="jobSearch" placeholder="Search for jobs...">
-        <select id="experienceFilter">
-            <option value="">All Experience Levels</option>
-            <option value="Entry Level">Entry Level</option>
-            <option value="Mid Level">Mid Level</option>
-            <option value="Senior Level">Senior Level</option>
-        </select>
-        <button id="searchBtn" class="btn-primary">Search</button>
+    .job-search-header {
+        background: #f8f9fa;
+        padding: 2rem;
+        border-radius: 8px;
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+    
+    .search-controls {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 1.5rem;
+        gap: 1rem;
+    }
+    
+    .search-bar {
+        display: flex;
+        flex-grow: 1;
+        max-width: 600px;
+    }
+    
+    .search-bar input {
+        flex-grow: 1;
+        padding: 0.75rem 1rem;
+        border: 1px solid #ddd;
+        border-radius: 4px 0 0 4px;
+        font-size: 1rem;
+    }
+    
+    .search-bar button {
+        padding: 0 1.5rem;
+        background: #4a6fa5;
+        color: white;
+        border: none;
+        border-radius: 0 4px 4px 0;
+        cursor: pointer;
+    }
+    
+    .job-search-content {
+        display: flex;
+        gap: 2rem;
+    }
+    
+    .filter-sidebar {
+        width: 250px;
+        background: #f8f9fa;
+        padding: 1.5rem;
+        border-radius: 8px;
+        height: fit-content;
+    }
+    
+    .filter-sidebar h3 {
+        margin-top: 0;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid #ddd;
+    }
+    
+    .filter-section {
+        margin-bottom: 1.5rem;
+    }
+    
+    .filter-section h4 {
+        margin-bottom: 0.5rem;
+        font-size: 1rem;
+    }
+    
+    .filter-options {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .filter-options label {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        cursor: pointer;
+    }
+    
+    .skills-input {
+        margin-top: 0.5rem;
+    }
+    
+    .skills-input input {
+        width: 100%;
+        padding: 0.5rem;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+    }
+    
+    #skills-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+    }
+    
+    .skill-tag {
+        background: #e9ecef;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+    
+    .skill-tag .remove-skill {
+        cursor: pointer;
+        color: #666;
+    }
+    
+    .job-results {
+        flex-grow: 1;
+    }
+    
+    .view-toggle {
+        display: flex;
+        border-bottom: 1px solid #ddd;
+        margin-bottom: 1.5rem;
+    }
+    
+    .view-toggle button {
+        padding: 0.5rem 1.5rem;
+        background: none;
+        border: none;
+        border-bottom: 3px solid transparent;
+        cursor: pointer;
+        font-weight: 500;
+    }
+    
+    .view-toggle button.view-active {
+        border-bottom-color: #4a6fa5;
+        color: #4a6fa5;
+    }
+    
+    .jobs-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+    
+    .job-card {
+        background: white;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    
+    .job-header {
+        margin-bottom: 1rem;
+    }
+    
+    .job-header h3 {
+        margin: 0 0 0.25rem 0;
+        font-size: 1.25rem;
+    }
+    
+    .company, .location {
+        display: inline-block;
+        margin-right: 1rem;
+        color: #666;
+        font-size: 0.9rem;
+    }
+    
+    .employment-type {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+    
+    .employment-type.full-time {
+        background: #e6f7ff;
+        color: #1890ff;
+    }
+    
+    .employment-type.part-time {
+        background: #fff7e6;
+        color: #fa8c16;
+    }
+    
+    .employment-type.remote {
+        background: #f6ffed;
+        color: #52c41a;
+    }
+    
+    .employment-type.hybrid {
+        background: #f9f0ff;
+        color: #722ed1;
+    }
+    
+    .match-info {
+        margin-top: 0.5rem;
+    }
+    
+    .match-score {
+        display: inline-block;
+        background: #4a6fa5;
+        color: white;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        font-weight: bold;
+    }
+    
+    .missing-skills {
+        font-size: 0.8rem;
+        color: #666;
+        margin-top: 0.25rem;
+    }
+    
+    .job-details .description {
+        color: #444;
+        margin-bottom: 1rem;
+    }
+    
+    .skills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .skill-tag {
+        background: #e9ecef;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.8rem;
+    }
+    
+    .recommended-courses {
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px dashed #ddd;
+    }
+    
+    .recommended-courses h4 {
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .recommended-courses ul {
+        margin: 0;
+        padding-left: 1rem;
+        font-size: 0.85rem;
+    }
+    
+    .recommended-courses li {
+        margin-bottom: 0.25rem;
+    }
+    
+    .job-actions {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+    
+    .btn-view-details {
+        background: #f8f9fa;
+        border: 1px solid #ddd;
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+    
+    .btn-view-details:hover {
+        background: #e9ecef;
+    }
+    
+    /* .btn-apply {
+        background: #4a6fa5;
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+        text-decoration: none;
+    }
+    
+    .btn-apply:hover {
+        background: #3a5a80;
+    } */
+    
+    /* Modal Styles */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.5);
+    }
+    
+    .modal-content {
+        background-color: white;
+        margin: 5% auto;
+        padding: 2rem;
+        border-radius: 8px;
+        width: 80%;
+        max-width: 800px;
+        max-height: 80vh;
+        overflow-y: auto;
+        position: relative;
+    }
+    
+    .close-modal {
+        position: absolute;
+        right: 1rem;
+        top: 1rem;
+        font-size: 1.5rem;
+        cursor: pointer;
+    }
+    
+    .job-meta {
+        margin-bottom: 1.5rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        font-size: 0.9rem;
+        color: #666;
+    }
+    
+    .job-meta span {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+    
+    .job-description, .job-requirements {
+        margin-bottom: 1.5rem;
+    }
+    
+    .job-requirements ul {
+        padding-left: 1.5rem;
+    }
+    
+    /* Loading and empty states */
+    .loading-spinner, .no-results, .recommendations-prompt {
+        text-align: center;
+        padding: 2rem;
+        color: #666;
+    }
+    
+    .error-message {
+        background: #fff3f3;
+        padding: 1.5rem;
+        border-radius: 8px;
+        text-align: center;
+        color: #d32f2f;
+    }
+    
+    .error-message a {
+        margin-top: 1rem;
+        display: inline-block;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .job-search-content {
+            flex-direction: column;
+        }
+        
+        .filter-sidebar {
+            width: 100%;
+        }
+        
+        .modal-content {
+            width: 95%;
+            margin: 2% auto;
+        }
+    }
+
+    /* Add to your existing styles */
+    .skills-tag {
+        background: #e0f2fe;
+        color: #0369a1;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.85rem;
+        display: inline-flex;
+        align-items: center;
+        margin-right: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .skills-tag .remove-skill {
+        margin-left: 0.5rem;
+        cursor: pointer;
+        color: #0369a1;
+    }
+
+    #skills-tags {
+        display: flex;
+        flex-wrap: wrap;
+        margin-top: 0.5rem;
+    }
+
+    .no-recommendations {
+    text-align: center;
+    padding: 2rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    }
+
+    .no-recommendations h3 {
+        color: #dc3545;
+        margin-bottom: 1rem;
+    }
+
+    .suggestions {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 8px;
+        margin-top: 1rem;
+        text-align: left;
+        max-width: 500px;
+        margin: 1rem auto 0;
+    }
+
+    .suggestions ul {
+        margin: 0.5rem 0 1rem;
+        padding-left: 1.5rem;
+    }
+
+    .suggestions li {
+        margin-bottom: 0.25rem;
+    }
+
+
+        .no-skills, .no-matches, .error {
+        padding: 2rem;
+        text-align: center;
+        background: #f8f9fa;
+        border-radius: 8px;
+        margin: 1rem 0;
+    }
+
+    .skill-pills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        justify-content: center;
+        margin: 1rem 0;
+    }
+
+    .skill-pills span {
+        background: #e0e7ff;
+        color: #4f46e5;
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.875rem;
+    }
+
+    .loading, .no-skills, .no-matches, .error {
+    padding: 1.5rem;
+    margin: 1rem 0;
+    border-radius: 8px;
+    background: #f8f9fa;
+    text-align: center;
+    }
+
+    .error {
+        background: #fff0f0;
+        border: 1px solid #ffcccc;
+    }
+
+    .match-score {
+        background: #777977;
+        color: white;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        display: inline-block;
+        margin: 0.5rem 0;
+    }
+
+    /* Add this to your existing styles */
+    .view-toggle {
+        display: flex;
+        gap: 0.5rem; /* Space between buttons */
+        margin-bottom: 1.5rem;
+        border-bottom: 1px solid #ddd;
+        padding-bottom: 0.5rem;
+    }
+
+    .view-toggle button {
+        padding: 0.75rem 1.5rem; /* Larger padding for bigger buttons */
+        font-size: 1rem; /* Appropriate font size */
+        font-weight: 500;
+        background: #f8f9fa; /* Light background */
+        color: #4a6fa5; /* Primary color */
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border-bottom: 3px solid transparent; /* For active state */
+    }
+
+    .view-toggle button:hover {
+        background: #e9ecef; /* Slightly darker on hover */
+        border-color: #ccc;
+    }
+
+    .view-toggle button.view-active {
+        background: #4a6fa5; /* Primary color */
+        color: white;
+        border-color: #4a6fa5;
+        border-bottom: 3px solid #3a5a80; /* Darker accent */
+    }
+
+    .view-toggle button.view-active:hover {
+        background: #3a5a80; /* Darker on hover */
+        border-color: #2a4a70;
+    }
+
+    .view-toggle {
+    display: flex;
+    gap: 0; /* Remove gap for full-width */
+    }
+
+    .view-toggle button {
+        flex: 1; /* Equal width */
+        text-align: center;
+        border-radius: 0; /* Square corners */
+        border-bottom: 3px solid transparent;
+    }
+
+    .view-toggle button:first-child {
+        border-top-left-radius: 4px;
+    }
+
+    .view-toggle button:last-child {
+        border-top-right-radius: 4px;
+    }
+
+    /* Add these styles to your existing CSS */
+    .job-actions {
+        display: flex;
+        align-items: flex-end; /* Align items at the bottom */
+        justify-content: space-between; /* Space between apply button and date */
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid #eee;
+    }
+
+    /* .btn-apply {
+        background: #4a6fa5;
+        color: white;
+        padding: 0.5rem 1.5rem;
+        border-radius: 4px;
+        text-decoration: none;
+        font-weight: 500;
+        transition: background 0.2s ease;
+    }
+
+    .btn-apply:hover {
+        background: #3a5a80;
+    } */
+
+    .post-date {
+        color: #666;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center; /* Vertically center the text */
+        height: 100%; /* Match button height */
+    }
+
+    /* Update your existing .btn-apply styles (remove duplicates) */
+    .btn-apply {
+        background: #4a6fa5;
+        color: white;
+        padding: 0.5rem 1.5rem;
+        border-radius: 4px;
+        text-decoration: none;
+        font-weight: 500;
+        transition: background 0.2s ease;
+        display: inline-block; /* Makes <a> and <button> align the same */
+        text-align: center;
+        border: none; /* Remove default button border */
+        cursor: pointer;
+        font-size: 0.9rem;
+        font-family: inherit; /* Match your site's font */
+    }
+
+    .btn-apply:hover {
+        background: #3a5a80;
+        text-decoration: none; /* Remove underline on hover for links */
+    }
+
+    /* For the recommended jobs button to match exactly */
+    .job-card .btn-apply {
+        margin-top: 1rem; /* Same spacing as in all jobs view */
+        width: auto; /* Don't stretch full width */
+    }
+
+    /* Job actions container for alignment */
+    .job-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid #eee;
+    }
+
+    .post-date {
+        color: #666;
+        font-size: 0.9rem;
+    }
+
+</style>
+    
+<div class="job-search-container">
+    <div class="job-search-header">
+        <h1>Find Your Dream Job</h1>
+        <div class="search-controls">
+            <div class="search-bar">
+                <input type="text" id="job-search-input" placeholder="Search by job title">
+                <button id="search-button"><i class="fas fa-search"></i></button>
+            </div>
+        </div>
     </div>
-    
-    <div id="jobResults" class="job-listings">
-        <!-- Jobs will be loaded here via JavaScript -->
+
+    <div class="job-search-content">
+        <div class="filter-sidebar">
+            <h3>Filters</h3>
+            <div class="filter-section">
+                <h4>Experience Level</h4>
+                <div class="filter-options">
+                    <label><input type="checkbox" name="experience" value="Entry Level"> Entry Level</label>
+                    <label><input type="checkbox" name="experience" value="Mid Level"> Mid Level</label>
+                    <label><input type="checkbox" name="experience" value="Senior Level"> Senior Level</label>
+                </div>
+            </div>
+            <div class="filter-section">
+                <h4>Employment Type</h4>
+                <div class="filter-options">
+                    <label><input type="checkbox" name="employment" value="Full-time"> Full-time</label>
+                    <label><input type="checkbox" name="employment" value="Part-time"> Part-time</label>
+                    <label><input type="checkbox" name="employment" value="Remote"> Remote</label>
+                    <label><input type="checkbox" name="employment" value="Hybrid"> Hybrid</label>
+                </div>
+            </div>
+            <div class="filter-section">
+                <h4>Required Skills</h4>
+                <div class="skills-input">
+                    <input type="text" id="skills-filter" placeholder="Add skills...">
+                    <div id="skills-tags"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="job-results">
+            <div class="view-toggle">
+                <button id="all-jobs-view" class="view-active">All Jobs</button>
+                <button id="recommended-jobs-view">Recommended For You</button>
+            </div>
+            
+            <div id="all-jobs-list" class="jobs-list">
+                <div class="loading-spinner">
+                    <i class="fas fa-spinner fa-spin"></i> Loading jobs...
+                </div>
+            </div>
+            
+            <div id="recommended-jobs-list" class="jobs-list" style="display:none;">
+                <div class="recommendations-prompt">
+                    <p>Get personalized job recommendations based on your skills and profile.</p>
+                    <button id="load-recommendations" class="btn-primary">Show Recommendations</button>
+                </div>
+            </div>
+        </div>
     </div>
+</div>
+
+<!-- Job Details Modal -->
+<div id="job-modal" class="modal">
+    <div class="modal-content">
+        <span class="close-modal">&times;</span>
+        <div id="job-details"></div>
+    </div>
+</div>
+
+<script>
+    // Debugging - confirm script is loading
+    console.log("Job search script loaded");
+
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log("DOM fully loaded");
+        
+        // Initialize skills filter functionality
+        const skillsFilterInput = document.getElementById('skills-filter');
+        const skillsTagsContainer = document.getElementById('skills-tags');
+        let selectedSkills = [];
     
-    <script src="{{ url_for('static', filename='js/job_search.js') }}"></script>
+        // Add skill when Enter is pressed
+        skillsFilterInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && this.value.trim()) {
+                const skill = this.value.trim();
+                if (!selectedSkills.includes(skill)) {
+                    selectedSkills.push(skill);
+                    renderSkillsTags();
+                }
+                this.value = '';
+            }
+        });
+    
+        // Render skills tags
+        function renderSkillsTags() {
+            skillsTagsContainer.innerHTML = '';
+            selectedSkills.forEach(skill => {
+                const tag = document.createElement('div');
+                tag.className = 'skill-tag';
+                tag.dataset.skill = skill;
+                tag.innerHTML = `
+                    ${skill}
+                    <span class="remove-skill" onclick="removeSkillFilter('${skill}')">×</span>
+                `;
+                skillsTagsContainer.appendChild(tag);
+            });
+        }
+    
+        // Remove skill filter
+        window.removeSkillFilter = function(skill) {
+            selectedSkills = selectedSkills.filter(s => s !== skill);
+            renderSkillsTags();
+            fetchAllJobs(); // Refresh jobs when filter changes
+        };
+    
+        // View toggle functionality
+        document.getElementById('all-jobs-view').addEventListener('click', function() {
+            document.getElementById('all-jobs-list').style.display = 'block';
+            document.getElementById('recommended-jobs-list').style.display = 'none';
+            this.classList.add('view-active');
+            document.getElementById('recommended-jobs-view').classList.remove('view-active');
+        });
+        
+        document.getElementById('recommended-jobs-view').addEventListener('click', function() {
+            document.getElementById('all-jobs-list').style.display = 'none';
+            document.getElementById('recommended-jobs-list').style.display = 'block';
+            this.classList.add('view-active');
+            document.getElementById('all-jobs-view').classList.remove('view-active');
+        });
+        
+        // Recommendation buttons
+        document.getElementById('load-recommendations').addEventListener('click', fetchRecommendedJobs);
+        
+        // Search functionality
+        document.getElementById('search-button').addEventListener('click', fetchAllJobs);
+        document.getElementById('job-search-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') fetchAllJobs();
+        });
+        
+        // Filter checkboxes - auto-apply when changed
+        document.querySelectorAll('.filter-options input').forEach(input => {
+            input.addEventListener('change', fetchAllJobs);
+        });
+    
+        // Modal close functionality
+        document.querySelector('.close-modal').addEventListener('click', function() {
+            document.getElementById('job-modal').style.display = 'none';
+        });
+        
+        window.addEventListener('click', function(event) {
+            const modal = document.getElementById('job-modal');
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        });
+    
+        // Initial load
+        fetchAllJobs();
+    });
+
+    async function fetchAllJobs() {
+        console.log("Starting to fetch jobs...");
+        const container = document.getElementById('all-jobs-list');
+        if (!container) {
+            console.error("Could not find all-jobs-list container");
+            return;
+        }
+        
+        container.innerHTML = '<div class="loading">Loading jobs...</div>';
+        
+        try {
+            // Build query parameters
+            const searchTerm = document.getElementById('job-search-input').value;
+            const experienceFilters = Array.from(document.querySelectorAll('input[name="experience"]:checked')).map(el => el.value);
+            const employmentFilters = Array.from(document.querySelectorAll('input[name="employment"]:checked')).map(el => el.value);
+            const skills = Array.from(document.querySelectorAll('#skills-tags .skill-tag')).map(el => el.dataset.skill);
+            
+            const params = new URLSearchParams();
+            if (searchTerm) params.append('search', searchTerm);
+            if (experienceFilters.length) params.append('experience', experienceFilters.join(','));
+            if (employmentFilters.length) params.append('employment', employmentFilters.join(','));
+            if (skills.length) params.append('skills', skills.join(','));
+            
+            console.log("Fetching jobs with params:", params.toString());
+            
+            const response = await fetch(`/jobs?${params.toString()}`, {
+                credentials: 'include',
+                headers: {
+                    'Accept': 'application/json'
+                }
+            });
+            
+            console.log("Response status:", response.status);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const jobs = await response.json();
+            console.log("Received jobs data:", jobs);
+            
+            if (!jobs || jobs.length === 0) {
+                container.innerHTML = `
+                    <div class="no-jobs">
+                        <p>No jobs found matching your criteria</p>
+                        <button onclick="fetchAllJobs()">Try Again</button>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = jobs.map(job => `
+                <div class="job-card">
+                    <div class="job-header">
+                        <h3>${job.title || 'No Title'}</h3>
+                        <div>
+                            <span class="company">${job.company || 'No Company'}</span>
+                            <span class="location">${job.location || 'Remote'}</span>
+                            <span class="employment-type ${job.employment_type?.toLowerCase().replace(' ', '-') || ''}">
+                                ${job.employment_type || 'Not specified'}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="job-details">
+                        <p class="description">${job.description || 'No description available'}</p>
+                        <div class="skills">
+                            ${(job.skills_required || []).map(skill => `
+                                <span class="skill-tag">${skill}</span>
+                            `).join('')}
+                        </div>
+                    </div>
+                    <div class="job-actions">
+                        ${job.apply_url ? `
+                            <a href="${job.apply_url}" target="_blank" class="btn-apply">Apply Now</a>
+                        ` : ''}
+                        <span class="post-date">Posted: ${job.posted_at ? new Date(job.posted_at).toLocaleDateString() : 'Unknown'}</span>
+                    </div>
+                </div>
+            `).join('');
+            
+        } catch (error) {
+            console.error("Error loading jobs:", error);
+            container.innerHTML = `
+                <div class="error">
+                    <p>Error loading jobs</p>
+                    <p><small>${error.message}</small></p>
+                    <button onclick="fetchAllJobs()">Try Again</button>
+                </div>
+            `;
+        }
+    }
+     
+    async function fetchRecommendedJobs() {
+        try {
+            const container = document.getElementById('recommended-jobs-list');
+            container.innerHTML = '<div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i> Loading recommendations...</div>';
+            
+            const response = await fetch('/jobs/recommendations', {
+                credentials: 'include'
+            });
+            
+            if (!response.ok) throw new Error('Failed to fetch recommendations');
+            
+            const recommendations = await response.json();
+            console.log("Recommendations data:", recommendations);
+            
+            if (recommendations.status === "no_skills") {
+                container.innerHTML = `
+                    <div class="no-skills">
+                        <h3>Profile Incomplete</h3>
+                        <p>${recommendations.message}</p>
+                        <ul>${recommendations.solutions.map(s => `<li>${s}</li>`).join('')}</ul>
+                        <a href="/profile" class="btn-primary">Complete Your Profile</a>
+                    </div>
+                `;
+            } 
+            else if (recommendations.length === 0) {
+                container.innerHTML = `
+                    <div class="no-matches">
+                        <p>No jobs match your current skills</p>
+                        <button onclick="fetchWithLowerThreshold()">Show less relevant jobs</button>
+                        <a href="/profile" class="btn-primary">Update Profile</a>
+                    </div>
+                `;
+            } else {
+                // In fetchRecommendedJobs(), modify the template to:
+                container.innerHTML = recommendations.map(job => `
+                    <div class="job-card">
+                        <h3>${job.title}</h3>
+                        <p class="company">${job.company}</p>
+                        <p class="match-score">${Math.round(job.match_score * 100)}% Match</p>
+                        <div class="matching-skills">
+                            <strong>Matching Skills:</strong> ${job.matching_skills.join(', ')}
+                        </div>
+                        <div class="job-actions">
+                            <a href="${job.apply_url || '#'}" target="_blank" class="btn-apply">Apply Now</a>
+                            ${job.posted_at ? `
+                                <span class="post-date">Posted: ${new Date(job.posted_at).toLocaleDateString()}</span>
+                            ` : ''}
+                        </div>
+                    </div>
+                `).join('');
+
+            }
+        } catch (error) {
+            console.error('Error loading recommendations:', error);
+            document.getElementById('recommended-jobs-list').innerHTML = `
+                <div class="error-message">
+                    <p>Error loading recommendations: ${error.message}</p>
+                    <button onclick="fetchRecommendedJobs()">Retry</button>
+                </div>
+            `;
+        }
+    }
+
+    function fetchWithLowerThreshold() {
+        fetch('/jobs/recommendations?min_match=0.05', {
+            credentials: 'include'
+        })
+            .then(response => response.json())
+            .then(data => {
+                const container = document.getElementById('recommended-jobs-list');
+                container.innerHTML = data.length > 0 
+                    ? data.map(job => `
+                        <div class="job-card">
+                            <h3>${job.title}</h3>
+                            <p class="company">${job.company}</p>
+                            <p class="match-score">${Math.round(job.match_score * 100)}% Match</p>
+                            <div class="matching-skills">
+                                <strong>Matching Skills:</strong> ${job.matching_skills.join(', ')}
+                            </div>
+                            <button class="btn-view-details" data-id="${job.job_id}">View Details</button>
+                        </div>
+                    `).join('')
+                    : '<div class="no-matches">No jobs found even with relaxed criteria</div>';
+            });
+    }
+</script>
 {% endblock %}

@@ -3,24 +3,403 @@
 {% block title %}Interview Prep | SkillMatch{% endblock %}
 
 {% block content %}
-    <h1>Interview Preparation</h1>
-    
-    <div class="resources">
-        <div class="resource-card">
-            <h3>Common Questions</h3>
-            <ul id="commonQuestions"></ul>
-        </div>
-        
-        <div class="resource-card">
-            <h3>Technical Challenges</h3>
-            <div id="techChallenges"></div>
-        </div>
-        
-        <div class="resource-card">
-            <h3>Behavioral Tips</h3>
-            <div id="behavioralTips"></div>
+
+
+<style>
+    body {
+        background-color: #e9ecef;
+        margin: 0;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .interview-prep-container {
+        max-width: 960px;
+        margin: 2rem auto; /* Added vertical spacing */
+        padding: 2.5rem 3rem; /* Slightly increased padding */
+        background-color: #eaf2fb; /* Slightly deeper blue for more contrast */
+        border-radius: 16px; /* More rounded */
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12); /* Stronger shadow for depth */
+        border: 1px solid #c2d6ea; /* Slightly darker border for definition */
+    }
+
+
+    .prep-header h1 {
+        font-size: 2.2rem;
+        color: #0d3c61;
+        margin-bottom: 0.5rem;
+        text-align: center;
+    }
+
+    .prep-header p {
+        font-size: 1.15rem;
+        color: #555;
+        margin-bottom: 2.5rem;
+        text-align: center;
+    }
+
+    .job-input-section {
+        margin-bottom: 2rem;
+    }
+
+    .job-input-container label {
+        font-weight: bold;
+        font-size: 1.05rem;
+        display: block;
+        margin-bottom: 0.5rem;
+        color: #333;
+    }
+
+    .input-with-button {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .input-with-button input {
+        flex-grow: 1;
+        padding: 0.75rem;
+        font-size: 1rem;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+    }
+
+    .generate-btn {
+        padding: 0.75rem 1.2rem;
+        background-color: #0077cc;
+        color: white;
+        font-weight: 600;
+        border: none;
+        border-radius: 6px;
+        transition: background-color 0.3s ease;
+    }
+
+    .generate-btn:hover {
+        background-color: #005fa3;
+    }
+
+    .section-title {
+        font-size: 1.5rem;
+        color: #0d3c61;
+        margin-bottom: 1rem;
+        margin-top: 2rem;
+    }
+
+    .clickable-question {
+        cursor: pointer;
+        margin: 0.5rem 0;
+        padding: 0.75rem;
+        background-color: #f1f1f1;
+        border-radius: 6px;
+        font-size: 1rem;
+        transition: background 0.2s ease;
+    }
+
+    .clickable-question:hover {
+        background-color: #e0e0e0;
+    }
+
+    .current-question-box {
+        margin-bottom: 1rem;
+        padding: 1rem;
+        background-color: #e9f1ff;
+        border-left: 4px solid #0077cc;
+        border-radius: 6px;
+    }
+
+    textarea#userAnswer {
+        width: 100%;
+        height: 120px;
+        padding: 0.75rem;
+        font-size: 1rem;
+        margin-top: 0.5rem;
+        margin-bottom: 1rem;
+        border-radius: 6px;
+        border: 1px solid #ccc;
+    }
+
+    .answer-buttons {
+        display: flex;
+        gap: 1rem;
+        margin-top: 0.5rem;
+    }
+
+    .btn {
+        padding: 0.6rem 1.2rem;
+        border-radius: 6px;
+        font-size: 1rem;
+        font-weight: 500;
+        border: none;
+        cursor: pointer;
+    }
+
+    .btn-primary {
+        background-color: #28a745;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background-color: #218838;
+    }
+
+    .btn-secondary {
+        background-color: #6c757d;
+        color: white;
+    }
+
+    .btn-secondary:hover {
+        background-color: #5a6268;
+    }
+
+    .placeholder-message {
+        background-color: #f9f9f9;
+        border: 1px dashed #ccc;
+        padding: 1rem;
+        border-radius: 6px;
+        text-align: center;
+        color: #888;
+        font-size: 0.95rem;
+    }
+
+    .feedback-score {
+        font-size: 1.1rem;
+        font-weight: bold;
+        margin-bottom: 1rem;
+        color: #1d3557;
+    }
+
+    .feedback-category h4 {
+        margin-bottom: 0.4rem;
+        font-size: 1.1rem;
+        color: #333;
+    }
+
+    .feedback-list {
+        list-style-type: disc;
+        padding-left: 1.5rem;
+        margin-bottom: 1.2rem;
+    }
+
+    .suggested-answer p {
+        background-color: #f4f4f4;
+        padding: 0.75rem;
+        border-radius: 6px;
+        margin-top: 0.5rem;
+        font-size: 0.95rem;
+    }
+
+    .history-section {
+        margin-top: 3rem;
+    }
+
+    .history-list .placeholder-message {
+        font-size: 0.95rem;
+        background-color: #fff;
+    }
+</style>
+
+
+
+<div class="interview-prep-container">
+    <div class="prep-header">
+        <h1>Ace Your Next Interview</h1>
+        <p>Practice with tailored questions and get actionable feedback</p>
+    </div>
+    <br>
+
+    <div class="job-input-section">
+        <div class="job-input-container">
+            <label for="customJobTitle">What position are you preparing for?</label>
+            <div class="input-with-button">
+                <input type="text" id="customJobTitle" placeholder="e.g. Frontend Developer, Product Manager, Data Analyst...">
+                <button id="generateQuestions" class="generate-btn">Get Questions</button>
+            </div>
         </div>
     </div>
-    
-    <script src="{{ url_for('static', filename='js/interview_prep.js') }}"></script>
+    <br>
+    <div class="interview-content">
+        <section class="questions-section">
+            <h2 class="section-title">Practice Questions</h2>
+            <div class="questions-list" id="aiGeneratedQuestions">
+                <div class="placeholder-message">
+                    <p>Enter your target job title to generate relevant interview questions</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="answer-feedback-section">
+            <div class="answer-section">
+                <div class="current-question-box">
+                    <h3>Selected Question</h3>
+                    <p id="currentQuestionText">Click a question to begin</p>
+                </div>
+
+                <div class="answer-input-container">
+                    <label for="userAnswer">Your Response</label>
+                    <textarea id="userAnswer" placeholder="Type your answer here..."></textarea>
+                    <div class="answer-buttons">
+                        <button id="clearAnswer" class="btn btn-secondary">Clear</button>
+                        <button id="submitAnswer" class="btn btn-primary">Get Feedback</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="feedback-section" id="feedbackContainer" style="display: none;">
+                <h2 class="section-title">Feedback</h2>
+                <div class="placeholder-message" id="feedbackPlaceholder">
+                    <p>Submit your answer to receive detailed feedback</p>
+                </div>
+
+                <div class="ai-feedback" id="aiFeedback" style="display: none;">
+                    <div class="feedback-score">
+                        Your Score: <span id="feedbackScore">0.0</span>/10
+                    </div>
+
+                    <div class="feedback-category">
+                        <h4>What You Did Well</h4>
+                        <ul class="feedback-list" id="strengthsList"></ul>
+                    </div>
+
+                    <div class="feedback-category">
+                        <h4>Areas to Improve</h4>
+                        <ul class="feedback-list" id="improvementsList"></ul>
+                    </div>
+
+                    <div class="suggested-answer">
+                        <h4>Sample Strong Answer</h4>
+                        <p id="suggestedAnswer"></p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <br>
+    <br>
+    <div class="history-section">
+        <h2 class="section-title">Your Practice History</h2>
+        <div class="history-list" id="practiceHistory">
+            <div class="placeholder-message">
+                <p>Your completed practice sessions will appear here</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById("generateQuestions").addEventListener("click", async () => {
+        const title = document.getElementById("customJobTitle").value.trim();
+        if (!title) {
+            alert("Please enter a job title");
+            return;
+        }
+
+        const button = document.getElementById("generateQuestions");
+        button.disabled = true;
+        button.textContent = "Generating...";
+
+        try {
+            const res = await fetch("/generate_questions", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({ job_title: title })
+            });
+
+            if (!res.ok) {
+                const error = await res.json();
+                throw new Error(error.error || "Failed to generate questions");
+            }
+
+            const data = await res.json();
+            const questionsDiv = document.getElementById("aiGeneratedQuestions");
+            questionsDiv.innerHTML = "";
+            
+            if (data.questions && data.questions.length > 0) {
+                data.questions.forEach((q, idx) => {
+                    const p = document.createElement("p");
+                    p.textContent = `${idx + 1}. ${q}`;
+                    p.classList.add("clickable-question");
+                    p.onclick = () => {
+                        document.getElementById("currentQuestionText").textContent = q;
+                        document.getElementById("feedbackContainer").style.display = "none";
+                    };
+                    questionsDiv.appendChild(p);
+                });
+            } else {
+                questionsDiv.innerHTML = `
+                    <div class="placeholder-message">
+                        <p>No questions were generated. Please try again.</p>
+                    </div>
+                `;
+            }
+        } catch (error) {
+            console.error("Error generating questions:", error);
+            alert(`Error: ${error.message}`);
+        } finally {
+            button.disabled = false;
+            button.textContent = "Get Questions";
+        }
+    });
+
+    document.getElementById("submitAnswer").addEventListener("click", async () => {
+        const question = document.getElementById("currentQuestionText").textContent;
+        const answer = document.getElementById("userAnswer").value.trim();
+        
+        if (!answer || question === "Click a question to begin") {
+            alert("Please select a question and provide an answer");
+            return;
+        }
+
+        const button = document.getElementById("submitAnswer");
+        const originalText = button.textContent;
+        button.disabled = true;
+        button.textContent = "Analyzing...";
+
+        try {
+            const res = await fetch("/get_feedback", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({ question, answer })
+            });
+
+            const data = await res.json();
+            
+            if (!res.ok) {
+                throw new Error(data.error || "Failed to get feedback");
+            }
+
+            // Show the feedback container
+            document.getElementById("feedbackContainer").style.display = "block";
+            document.getElementById("feedbackPlaceholder").style.display = "none";
+            document.getElementById("aiFeedback").style.display = "block";
+
+            // Update the UI with feedback
+            document.getElementById("feedbackScore").textContent = data.score.toFixed(1);
+            document.getElementById("suggestedAnswer").textContent = data.suggested_answer;
+
+            // Clear previous feedback
+            const strengths = document.getElementById("strengthsList");
+            strengths.innerHTML = "";
+            data.strengths.forEach(item => {
+                const li = document.createElement("li");
+                li.textContent = item;
+                strengths.appendChild(li);
+            });
+
+            const improvements = document.getElementById("improvementsList");
+            improvements.innerHTML = "";
+            data.improvements.forEach(item => {
+                const li = document.createElement("li");
+                li.textContent = item;
+                improvements.appendChild(li);
+            });
+
+        } catch (error) {
+            console.error("Error getting feedback:", error);
+            alert(`Error: ${error.message}`);
+        } finally {
+            button.disabled = false;
+            button.textContent = originalText;
+        }
+    });
+</script>
+
 {% endblock %}

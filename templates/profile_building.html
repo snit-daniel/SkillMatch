@@ -1,7 +1,6 @@
 {% extends "base.html" %}
 
 {% block title %}Profile | SkillMatch{% endblock %}
-
 {% block content %}
 <div class="profile-container">
     <div class="profile-card">
@@ -10,7 +9,13 @@
             <p class="profile-subtitle">Complete your profile to get better job matches</p>
         </div>
         
-        <form id="profileForm" method="post" action="/users/me/profile" class="profile-form">
+        {% if request.query_params.get('success') %}
+        <div class="alert alert-success">
+            Profile updated successfully!
+        </div>
+        {% endif %}
+        
+        <form id="profileForm" method="post" action="/users/me/profile" enctype="multipart/form-data" class="profile-form">
             <div class="form-group">
                 <label for="full_name" class="input-label">Full Name</label>
                 <div class="input-wrapper">
@@ -18,12 +23,12 @@
                         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                         <circle cx="12" cy="7" r="4"></circle>
                     </svg>
-                    <input type="text" id="full_name" name="full_name" class="form-input" placeholder="Enter your full name" required>
+                    <input type="text" id="full_name" name="full_name" class="form-input" placeholder="Enter your full name" required value="{{ current_user.full_name if current_user else '' }}">
                 </div>
             </div>
             
             <div class="form-group">
-                <label for="cv_url" class="input-label">CV/Resume URL</label>
+                <label for="cv_file" class="input-label">Upload CV (PDF/DOC/DOCX)</label>
                 <div class="input-wrapper">
                     <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
@@ -32,135 +37,339 @@
                         <line x1="16" y1="17" x2="8" y2="17"></line>
                         <polyline points="10 9 9 9 8 9"></polyline>
                     </svg>
-                    <input type="url" id="cv_url" name="cv_url" class="form-input" placeholder="https://example.com/your-cv.pdf" required>
+                    <input type="file" id="cv_file" name="cv_file" class="form-input" accept=".pdf,.doc,.docx" {% if not current_user or not current_user.cv_file %}required{% endif %}>
                 </div>
+                <small class="form-hint">Your CV will be stored securely in our database</small>
+                
+                {% if current_user and current_user.cv_file %}
+                <div class="cv-download-section">
+                    <a href="/download/cv" class="download-btn" download>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                        Download Current CV
+                    </a>
+                    <span class="cv-info">Uploaded: {{ current_user.cv_filename }}</span>
+                </div>
+                {% endif %}
             </div>
             
+            <!-- Skills Detected from CV Section -->
+            {% if current_user and current_user.cv_extracted_skills %}
             <div class="form-group">
-                <label for="skills" class="input-label">Your Skills</label>
+                <label class="input-label">Skills Detected from CV:</label>
+                <div id="autoSkillsContainer" class="skills-tags-container">
+                    {% for skill in current_user.cv_extracted_skills %}
+                        <div class="skill-tag auto-skill">
+                            {{ skill }} <span class="skill-source">(CV)</span>
+                        </div>
+                    {% endfor %}
+                </div>
+                <div class="form-check mt-2">
+                    <input class="form-check-input" type="checkbox" id="useCvSkills" checked>
+                    <label class="form-check-label" for="useCvSkills">
+                        Include CV skills in my profile
+                    </label>
+                </div>
+            </div>
+            {% endif %}
+            
+            <div class="form-group">
+                <label for="skills" class="input-label">Additional Skills</label>
                 <div class="skills-input-container">
                     <div class="skills-hint">Add your top skills (press Enter or comma after each skill)</div>
-                    <div class="skills-tags-container" id="skillsTagsContainer"></div>
+                    <div class="skills-tags-container" id="skillsTagsContainer">
+                        {% if current_user and current_user.additional_skills %}
+                            {% for skill in current_user.additional_skills %}
+                                <div class="skill-tag">
+                                    {{ skill }}
+                                    <span class="skill-tag-remove" onclick="removeSkill('{{ skill }}')">×</span>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
                     <input type="text" id="skillsInput" class="form-input" placeholder="e.g. Python, JavaScript, Project Management">
-                    <input type="hidden" id="skills" name="additional_skills">
+                    <input type="hidden" id="skills" name="additional_skills" value="{{ current_user.additional_skills|join(',') if current_user and current_user.additional_skills else '' }}">
                 </div>
                 <small class="form-hint">These skills will be used to match you with relevant jobs</small>
             </div>
             
-            <button type="submit" class="submit-btn">
-                <span>Save Profile</span>
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-                    <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                    <polyline points="7 3 7 8 15 8"></polyline>
-                </svg>
+            <button type="submit" class="submit-btn" id="submitBtn">
+                <span id="submitText">Save Profile</span>
+                <div id="submitSpinner" class="spinner hidden"></div>
             </button>
         </form>
     </div>
 </div>
 
 <style>
-/* Profile Specific Styles */
-.profile-container {
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    min-height: 80vh;
-    padding: 2rem;
-    background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
-}
+    body {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        line-height: 1.6;
+        color: var(--text-color);
+        background-image: url('/static/images/background.jpg'); /* Adjust path based on your setup */
+        background-size: cover;
+        background-repeat: no-repeat;
+        background-position: center center;
+        background-attachment: fixed; /* Optional: creates a parallax effect */
 
-.profile-card {
-    width: 100%;
-    max-width: 600px;
-    padding: 2.5rem;
-    background: white;
-    border-radius: 16px;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
-}
+    }
+    
+    .profile-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 3rem 1rem;
+    }
+    
+    .profile-card {
+        background-color: #ffffff;
+        padding: 2.5rem;
+        border-radius: 20px;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+        width: 100%;
+        max-width: 700px;
+    }
+    
+    .profile-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    
+    .profile-title {
+        font-size: 2rem;
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+    }
+    
+    .profile-subtitle {
+        font-size: 1rem;
+        color: #6c757d;
+    }
+    
+    .form-group {
+        margin-bottom: 1.8rem;
+    }
+    
+    .input-label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: #34495e;
+    }
+    
+    .input-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+    
+    .input-icon {
+        position: absolute;
+        left: 12px;
+        color: #999;
+    }
+    
+    .form-input {
+        width: 100%;
+        padding: 0.75rem 0.75rem 0.75rem 2.5rem;
+        border: 1px solid #ced4da;
+        border-radius: 12px;
+        font-size: 1rem;
+        transition: border-color 0.3s ease;
+    }
+    
+    .form-input:focus {
+        border-color: #007bff;
+        outline: none;
+    }
+    
+    .form-hint {
+        font-size: 0.85rem;
+        color: #6c757d;
+        margin-top: 0.5rem;
+    }
+    
+    .cv-download-section {
+        margin-top: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .download-btn {
+        display: inline-flex;
+        align-items: center;
+        background-color: #007bff;
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: 500;
+        transition: background-color 0.3s ease;
+    }
+    
+    .download-btn:hover {
+        background-color: #0056b3;
+    }
+    
+    .cv-info {
+        font-size: 0.9rem;
+        color: #333;
+    }
+    
+    .skills-input-container {
+        border: 1px solid #ced4da;
+        border-radius: 12px;
+        padding: 1rem;
+        background-color: #fafafa;
+    }
+    
+    .skills-hint {
+        font-size: 0.85rem;
+        color: #888;
+        margin-bottom: 0.5rem;
+    }
+    
+    .skills-tags-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .skill-tag {
+        background-color: #e3f2fd;
+        color: #0d47a1;
+        padding: 0.3rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+    
+    .skill-tag-remove {
+        cursor: pointer;
+        font-weight: bold;
+        color: #0d47a1;
+        transition: color 0.2s ease;
+    }
+    
+    .skill-tag-remove:hover {
+        color: #d32f2f;
+    }
+    
+    .submit-btn {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: #28a745;
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 12px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+        width: 100%;
+        transition: background-color 0.3s ease;
+    }
+    
+    .submit-btn:hover {
+        background-color: #218838;
+    }
+    
+    .spinner {
+        border: 3px solid #f3f3f3;
+        border-top: 3px solid white;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        animation: spin 1s linear infinite;
+        margin-left: 10px;
+    }
+    
+    .hidden {
+        display: none;
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
 
-.profile-header {
-    text-align: center;
-    margin-bottom: 2.5rem;
-}
+    .auto-skill {
+    background-color: #e3f2fd;
+    border-left: 3px solid #2196F3;
+    }
 
-.profile-title {
-    font-size: 1.8rem;
-    font-weight: 700;
-    color: #2c3e50;
-    margin-bottom: 0.5rem;
-}
+    .skill-source {
+        font-size: 0.7rem;
+        color: #666;
+        margin-left: 0.3rem;
+        font-style: italic;
+    }
 
-.profile-subtitle {
-    color: #7f8c8d;
-    font-size: 0.95rem;
-}
-
-.profile-form {
-    display: flex;
-    flex-direction: column;
-    gap: 1.75rem;
-}
-
-/* Skills Input Styles */
-.skills-input-container {
-    position: relative;
-}
-
-.skills-hint {
-    font-size: 0.85rem;
-    color: #7f8c8d;
-    margin-bottom: 0.5rem;
-}
-
-.skills-tags-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    margin-bottom: 0.5rem;
-    min-height: 2.5rem;
-}
-
-.skill-tag {
-    display: inline-flex;
-    align-items: center;
-    background-color: #e0f2fe;
-    color: #0369a1;
-    padding: 0.25rem 0.75rem;
-    border-radius: 9999px;
-    font-size: 0.85rem;
-    font-weight: 500;
-}
-
-.skill-tag-remove {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    margin-left: 0.5rem;
-    cursor: pointer;
-    color: #0369a1;
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    transition: background-color 0.2s;
-}
-
-.skill-tag-remove:hover {
-    background-color: #bae6fd;
-}
+    .no-skills {
+        color: #999;
+        font-size: 0.9rem;
+        margin: 0.5rem 0;
+    }
 </style>
+    
+</div>
+</div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const skillsInput = document.getElementById('skillsInput');
     const skillsTagsContainer = document.getElementById('skillsTagsContainer');
+    const autoSkillsContainer = document.getElementById('autoSkillsContainer');
     const skillsHiddenInput = document.getElementById('skills');
+    const useCvSkillsCheckbox = document.getElementById('useCvSkills');
+    
+    // Initialize with existing skills if any
     let skills = [];
-
-    // Load existing skills if any
     if (skillsHiddenInput.value) {
         skills = skillsHiddenInput.value.split(',');
         renderSkills();
+    }
+
+    // Set up checkbox to include/exclude CV skills
+    if (useCvSkillsCheckbox) {
+        useCvSkillsCheckbox.addEventListener('change', function() {
+            if (this.checked) {
+                // Add CV skills if they're not already present
+                const cvSkills = getCvSkills();
+                cvSkills.forEach(skill => {
+                    if (!skills.includes(skill)) {
+                        skills.push(skill);
+                    }
+                });
+            } else {
+                // Remove CV skills
+                const cvSkills = getCvSkills();
+                skills = skills.filter(skill => !cvSkills.includes(skill));
+            }
+            renderSkills();
+        });
+
+        // Initialize with CV skills if checkbox is checked
+        if (useCvSkillsCheckbox.checked) {
+            const cvSkills = getCvSkills();
+            cvSkills.forEach(skill => {
+                if (!skills.includes(skill)) {
+                    skills.push(skill);
+                }
+            });
+            renderSkills();
+        }
     }
 
     skillsInput.addEventListener('keydown', function(e) {
@@ -177,6 +386,14 @@ document.addEventListener('DOMContentLoaded', function() {
             skillsInput.value = '';
         }
     });
+
+    function getCvSkills() {
+        if (!autoSkillsContainer) return [];
+        const cvSkillElements = autoSkillsContainer.querySelectorAll('.auto-skill');
+        return Array.from(cvSkillElements).map(el => {
+            return el.textContent.split('(CV)')[0].trim();
+        });
+    }
 
     function addSkill(skill) {
         if (skill && !skills.includes(skill)) {
@@ -197,15 +414,63 @@ document.addEventListener('DOMContentLoaded', function() {
             tag.className = 'skill-tag';
             tag.innerHTML = `
                 ${skill}
-                <span class="skill-tag-remove" onclick="removeSkill('${skill}')">×</span>
+                <span class="skill-tag-remove" onclick="removeSkill('${skill.replace(/'/g, "\\'")}')">×</span>
             `;
             skillsTagsContainer.appendChild(tag);
         });
         skillsHiddenInput.value = skills.join(',');
     }
 
-    // Make removeSkill available globally for the onclick handler
+    // Make removeSkill available globally
     window.removeSkill = removeSkill;
+
+    // Form submission handling
+    const form = document.getElementById('profileForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const submitText = document.getElementById('submitText');
+    const submitSpinner = document.getElementById('submitSpinner');
+
+    if (form) {
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // Validate at least one skill
+            if (skills.length === 0) {
+                alert('Please add at least one skill');
+                skillsInput.focus();
+                return;
+            }
+
+            // Show loading state
+            submitText.textContent = 'Saving...';
+            submitSpinner.classList.remove('hidden');
+            submitBtn.disabled = true;
+
+            try {
+                const formData = new FormData(form);
+                const response = await fetch('/users/me/profile', {
+                    method: 'POST',
+                    body: formData,
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    window.location.href = '/profile?success=true';
+                } else {
+                    const error = await response.json();
+                    alert(error.detail || 'Failed to save profile');
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            } finally {
+                // Reset button state
+                submitText.textContent = 'Save Profile';
+                submitSpinner.classList.add('hidden');
+                submitBtn.disabled = false;
+            }
+        });
+    }
 });
 </script>
+
 {% endblock %}

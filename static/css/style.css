@@ -25,9 +25,15 @@ body {
     min-height: 100vh;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     line-height: 1.6;
-    color: var(--text-color);
-    background-color: #f5f7fa;
+    /* color: var(--text-color); */
+
+    background-image: url('/static/images/background.jpg'); /* Adjust path based on your setup */
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-attachment: fixed; /* Optional: creates a parallax effect */
 }
+
 
 .container {
     flex: 1;
@@ -158,58 +164,73 @@ body {
     border-left: 4px solid #c62828;
 }
 
+
+
 /* Header Styles */
 .header {
-    background-color: white;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    background-color: #ffffff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     position: sticky;
     top: 0;
     z-index: 100;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .header .container {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 15px 20px;
+    padding: 16px 32px;
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
 .logo a {
-    font-size: 24px;
-    font-weight: 700;
-    color: var(--secondary-color);
+    font-size: 28px;
+    font-weight: bold;
+    color: #2c3e50;
+    text-decoration: none;
 }
 
 .navbar {
     display: flex;
     align-items: center;
-    gap: 20px;
+    gap: 25px;
 }
 
 .navbar a {
+    font-size: 16px;
     font-weight: 600;
+    color: #34495e;
+    text-decoration: none; /* Removes underline */
+    transition: color 0.3s ease, background-color 0.3s ease;
     padding: 8px 12px;
-    transition: var(--transition);
+    border-radius: 5px;
 }
 
 .navbar a:hover {
-    color: var(--primary-color);
+    color: #007BFF;
+    background-color: rgba(0, 123, 255, 0.1);
 }
 
 .btn-login {
-    color: var(--primary-color);
+    color: #007BFF;
+    font-weight: bold;
 }
 
 .btn-signup {
-    background-color: var(--primary-color);
-    color: white;
-    border-radius: 5px;
+    background-color: #007BFF;
+    color: #ffffff !important;
     padding: 8px 16px;
+    border-radius: 5px;
+    font-weight: bold;
+    text-decoration: none;
 }
 
 .btn-signup:hover {
-    background-color: #2980b9;
+    background-color: #0056b3;
 }
+
 
 /* Footer Styles */
 footer {
@@ -337,9 +358,8 @@ footer {
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 80vh;
+    min-height: 30vh;
     padding: 2rem;
-    background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
 }
 
 .form-card {
@@ -528,37 +548,67 @@ body {
     padding: 0 20px;
 }
 
-/* Button Styles */
+/* General Button Styles */
 .btn {
     display: inline-block;
-    padding: 10px 20px;
-    border-radius: 5px;
-    font-weight: 600;
+    padding: 12px 25px; /* Adequate padding for balance */
+    border-radius: 50px; /* Rounded corners for a modern look */
+    font-weight: bold;
+    font-size: 16px; /* Improved readability */
+    text-align: center;
+    cursor: pointer;
     transition: all 0.3s ease;
+    border: none; /* Remove default border */
+    outline: none; /* Removes outline */
 }
 
+/* Ensure no underlines on anchor tags used as buttons */
+.btn a {
+    text-decoration: none; /* Ensure no underlines */
+    color: inherit; /* Inherit the text color from the parent button */
+}
+
+/* Primary Button */
 .btn-primary {
     background-color: var(--primary-color);
     color: white;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Soft shadow for depth */
 }
 
 .btn-primary:hover {
-    background-color: #2980b9;
+    background-color: #2980b9; /* Darker shade on hover */
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); /* Larger shadow on hover */
+    transform: translateY(-4px); /* Slightly raise the button */
 }
 
+/* Secondary Button */
 .btn-secondary {
+    background-color: transparent;
     border: 2px solid var(--primary-color);
     color: var(--primary-color);
+    box-shadow: none; /* No shadow */
 }
 
 .btn-secondary:hover {
     background-color: var(--primary-color);
     color: white;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow on hover */
+    transform: translateY(-4px); /* Slightly raise the button */
 }
+
+/* Responsive Button Styles */
+@media (max-width: 768px) {
+    .btn {
+        padding: 10px 20px; /* Adjust padding for smaller screens */
+        font-size: 14px; /* Slightly smaller font size on mobile */
+    }
+}
+
+
 
 /* Hero Section */
 .hero {
-    padding: 80px 0;
+    padding: 40px 0;
     background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
 }
 
@@ -588,6 +638,25 @@ body {
     display: flex;
     gap: 15px;
 }
+
+.btn-ter {
+    display: inline-block;
+    padding: 0.6rem 1.2rem;
+    background-color: #ffffff;
+    color: #0d3c61;
+    border: 2px solid #0d3c61;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: background-color 0.3s, color 0.3s;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.btn-ter:hover {
+    background-color: #0d3c61;
+    color: #ffffff;
+}
+
 
 .hero-image {
     flex: 1;
@@ -645,7 +714,7 @@ body {
 
 /* Testimonials Section */
 .testimonials {
-    padding: 80px 0;
+    padding: 30px 0;
     background-color: #f5f7fa;
 }
 
@@ -776,3 +845,5 @@ body {
         opacity: 1;
     }
 }
+
+

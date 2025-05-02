@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}SkillMatch{% endblock %}</title>
-    <link rel="stylesheet" href="/static/css/style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fontx-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
     <header class="header">
@@ -16,8 +16,8 @@
             <nav class="navbar">
                 <a href="/">Home</a>
                 <a href="/profile">Profile</a>
-                <a href="/job-search">Job Search</a>
-                <a href="/interview-prep">Interview Prep</a>
+                <a href="/job_search">Job Search</a>
+                <a href="/interview_prep">Interview Prep</a>
                 <a href="/login" class="btn-login">Log In</a>
                 <a href="/signup" class="btn-signup">Sign Up</a>
             </nav>
@@ -40,8 +40,8 @@
                     <ul>
                         <li><a href="/">Home</a></li>
                         <li><a href="/profile">Profile</a></li>
-                        <li><a href="/job-search">Jobs</a></li>
-                        <li><a href="/interview-prep">Interview Prep</a></li>
+                        <li><a href="/job_search">Jobs</a></li>
+                        <li><a href="/interview_prep">Interview Prep</a></li>
                     </ul>
                 </div>
                 <div class="footer-section">
